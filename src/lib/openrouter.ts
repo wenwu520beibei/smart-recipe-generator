@@ -1,4 +1,4 @@
-import { Person } from '@/types';
+import { Person, Recipe } from '@/types';
 
 interface OpenRouterMessage {
   role: 'system' | 'user' | 'assistant';
@@ -40,7 +40,7 @@ export class OpenRouterAPI {
     persons: Person[], 
     scenario: string, 
     daysCount: number = 7
-  ): Promise<any[]> {
+  ): Promise<Recipe[]> {
     const systemPrompt = this.buildSystemPrompt();
     const userPrompt = this.buildUserPrompt(persons, scenario, daysCount);
 
@@ -191,7 +191,7 @@ ${personsInfo}
 请生成具体的菜谱方案，包含详细的食材清单和制作指导。`;
   }
 
-  private parseRecipeResponse(content: string): any[] {
+  private parseRecipeResponse(content: string): Recipe[] {
     try {
       // 清理响应内容，移除可能的markdown标记
       const cleanContent = content
@@ -216,7 +216,7 @@ ${personsInfo}
     }
   }
 
-  private getFallbackRecipes(): any[] {
+  private getFallbackRecipes(): Recipe[] {
     return [
       {
         id: 'fallback-1',

@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         error: 'AI菜谱生成失败，请稍后重试',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined
       },
       { status: 500 }
     );

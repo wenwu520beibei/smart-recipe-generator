@@ -42,7 +42,7 @@ export default function Hero() {
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
               <span className="block text-gray-900">告别</span>
               <span className="block bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 bg-clip-text text-transparent">
-                "今天吃什么"
+                &ldquo;今天吃什么&rdquo;
               </span>
               <span className="block text-gray-900 text-3xl sm:text-4xl lg:text-5xl mt-2">
                 的决策疲劳

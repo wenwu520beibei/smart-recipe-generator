@@ -2,7 +2,7 @@
 
 import { 
   Users, Clock, Target, Globe, ShoppingCart, Heart,
-  Zap, Shield, Smartphone, Brain, Utensils, Star
+  Zap, Shield, Smartphone, Utensils, Star
 } from 'lucide-react';
 
 export default function Features() {

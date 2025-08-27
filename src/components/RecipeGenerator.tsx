@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { User, Settings, Zap, ShoppingCart, ChefHat, Star, Plus, Trash2, Save } from 'lucide-react';
-import { Person, Recipe, WeeklyPlan, ShoppingItem } from '@/types';
+import { Person, Recipe, WeeklyPlan } from '@/types';
+import type { ShoppingItem } from '@/types';
 import { saveToLocalStorage, loadFromLocalStorage } from '@/lib/utils';
 
 export default function RecipeGenerator() {

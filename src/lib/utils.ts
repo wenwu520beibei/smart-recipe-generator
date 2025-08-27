@@ -49,7 +49,7 @@ export function getVideoLinksByRegion(region: string): { platform: string; baseU
   return linkMap[region as keyof typeof linkMap] || linkMap.default;
 }
 
-export function saveToLocalStorage(key: string, data: any): void {
+export function saveToLocalStorage(key: string, data: unknown): void {
   if (typeof window !== 'undefined') {
     localStorage.setItem(key, JSON.stringify(data));
   }
