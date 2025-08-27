@@ -141,33 +141,108 @@ export default function RecipeGenerator() {
   const generateWeeklyPlan = async () => {
     setIsGenerating(true);
     
-    // 模拟AI生成过程
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    const mockRecipes = generateMockRecipes();
-    const mockPlan: WeeklyPlan = {
-      id: Date.now().toString(),
-      startDate: new Date().toISOString(),
-      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      dailyPlans: Array.from({ length: 7 }, (_, i) => ({
-        id: (i + 1).toString(),
-        date: new Date(Date.now() + i * 24 * 60 * 60 * 1000).toISOString(),
-        meals: {
-          dinner: mockRecipes[i % mockRecipes.length]
+    try {
+      // 调用真实的AI API生成菜谱
+      const response = await fetch('/api/generate-recipes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        totalCalories: 600,
-        totalMacros: { carbs: 45, protein: 40, fat: 20 }
-      })),
-      shoppingList: [
-        { name: '鸡胸肉', amount: 400, unit: 'g', category: '肉类' },
-        { name: '鲈鱼', amount: 2, unit: '条', category: '海鲜' },
-        { name: '花生米', amount: 100, unit: 'g', category: '坚果' },
-      ]
-    };
+        body: JSON.stringify({
+          persons,
+          scenario: selectedScenario,
+          daysCount: 7
+        })
+      });
 
-    setGeneratedPlan(mockPlan);
-    setIsGenerating(false);
-    setCurrentStep(4);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'AI菜谱生成失败');
+      }
+
+      const data = await response.json();
+      const aiRecipes = data.recipes;
+
+      // 构建周计划
+      const weeklyPlan: WeeklyPlan = {
+        id: Date.now().toString(),
+        startDate: new Date().toISOString(),
+        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        dailyPlans: Array.from({ length: 7 }, (_, i) => ({
+          id: (i + 1).toString(),
+          date: new Date(Date.now() + i * 24 * 60 * 60 * 1000).toISOString(),
+          meals: {
+            dinner: aiRecipes[i % aiRecipes.length] || generateMockRecipes()[0]
+          },
+          totalCalories: aiRecipes[i % aiRecipes.length]?.calories || 600,
+          totalMacros: aiRecipes[i % aiRecipes.length]?.macros || { carbs: 45, protein: 40, fat: 20 }
+        })),
+        shoppingList: generateShoppingListFromRecipes(aiRecipes)
+      };
+
+      setGeneratedPlan(weeklyPlan);
+      setCurrentStep(4);
+
+      // 保存生成历史
+      saveToLocalStorage('latest-generated-plan', weeklyPlan);
+
+    } catch (error) {
+      console.error('AI菜谱生成失败:', error);
+      
+      // 如果AI生成失败，回退到模拟数据
+      alert('AI菜谱生成暂时不可用，为您提供示例菜谱');
+      const mockRecipes = generateMockRecipes();
+      const mockPlan: WeeklyPlan = {
+        id: Date.now().toString(),
+        startDate: new Date().toISOString(),
+        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        dailyPlans: Array.from({ length: 7 }, (_, i) => ({
+          id: (i + 1).toString(),
+          date: new Date(Date.now() + i * 24 * 60 * 60 * 1000).toISOString(),
+          meals: {
+            dinner: mockRecipes[i % mockRecipes.length]
+          },
+          totalCalories: 600,
+          totalMacros: { carbs: 45, protein: 40, fat: 20 }
+        })),
+        shoppingList: [
+          { name: '鸡胸肉', amount: 400, unit: 'g', category: '肉类' },
+          { name: '鲈鱼', amount: 2, unit: '条', category: '海鲜' },
+          { name: '花生米', amount: 100, unit: 'g', category: '坚果' },
+        ]
+      };
+      
+      setGeneratedPlan(mockPlan);
+      setCurrentStep(4);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // 从菜谱生成购物清单的辅助函数
+  const generateShoppingListFromRecipes = (recipes: Recipe[]): ShoppingItem[] => {
+    const ingredientMap: { [key: string]: ShoppingItem } = {};
+
+    recipes.forEach(recipe => {
+      if (recipe.ingredients) {
+        recipe.ingredients.forEach(ingredient => {
+          const key = ingredient.name;
+          if (ingredientMap[key]) {
+            ingredientMap[key].amount += ingredient.amount;
+          } else {
+            ingredientMap[key] = {
+              name: ingredient.name,
+              amount: ingredient.amount,
+              unit: ingredient.unit,
+              category: ingredient.category,
+              checked: false
+            };
+          }
+        });
+      }
+    });
+
+    return Object.values(ingredientMap);
   };
 
   const renderStep = () => {
